@@ -1,0 +1,213 @@
+{
+  "info": {
+    "_postman_id": "f404dd8c-1fcb-48bb-a7f5-a575a230bb43",
+    "name": "Natural-Language SQL MCP API",
+    "description": "Requests for the Node.js natural-language SQL agent API. Set `apiBearerToken`, then run `Create Session` before `Ask Database Question`; the session ID is saved automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "healthz"
+              ]
+            },
+            "description": "Returns whether the API process is running."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Process is live\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"ok\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readyz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "readyz"
+              ]
+            },
+            "description": "Returns ready only when the private MCP server can reach MySQL."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Readiness endpoint responds\", function () {",
+                  "  pm.expect([200, 503]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        {
+          "name": "Create Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Session created\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const response = pm.response.json();",
+                  "  pm.expect(response.sessionId).to.be.a(\"string\");",
+                  "  pm.collectionVariables.set(\"sessionId\", response.sessionId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{apiBearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "sessions"
+              ]
+            },
+            "description": "Creates an in-memory conversation session and stores the returned `sessionId` as a collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Ask Database Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Agent answered the question\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const response = pm.response.json();",
+                  "  pm.expect(response.sessionId).to.eql(pm.collectionVariables.get(\"sessionId\"));",
+                  "  pm.expect(response.answer).to.be.a(\"string\");",
+                  "  pm.expect(response.evidence).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{apiBearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"{{question}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/sessions/{{sessionId}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "sessions",
+                "{{sessionId}}",
+                "messages"
+              ]
+            },
+            "description": "Asks a natural-language database question using the active conversation session."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "apiBearerToken",
+      "value": "replace-with-a-long-service-token",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "question",
+      "value": "How many orders were placed this month?",
+      "type": "string"
+    }
+  ]
+}
