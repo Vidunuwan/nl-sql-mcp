@@ -1,0 +1,34 @@
+{
+  "name": "nl-sql-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Natural-language MySQL querying API backed by an OpenAI agent and a private MCP server.",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check:runtime-imports": "node --input-type=module -e \"await import('./dist/sql/validator.js'); console.log('Runtime ESM imports loaded successfully.')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "dev": "node --env-file-if-exists=.env --import tsx src/api/main.ts",
+    "mcp:dev": "node --env-file-if-exists=.env --import tsx src/mcp/main.ts",
+    "start": "node --env-file-if-exists=.env dist/api/main.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@openai/agents": "^0.11.5",
+    "fastify": "^5.8.5",
+    "mysql2": "^3.22.4",
+    "node-sql-parser": "^5.3.10",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}
