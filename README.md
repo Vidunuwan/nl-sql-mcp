@@ -197,14 +197,6 @@ $env:RUN_OPENAI_SMOKE = "1"
 npm test -- test/openai.smoke.test.ts
 ```
 
-## Screenshots
-
-Add screenshots or a short demo recording before publication:
-
-- Dashboard question and answer flow
-- Evidence table with validated SQL
-- Automatically generated chart example
-
 ## Future Improvements
 
 - Persist sessions in a production-ready store for multi-instance deployments.
